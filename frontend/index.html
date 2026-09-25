@@ -1,0 +1,620 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinevo — Movie Recommender</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <h1>🎬 Cinevo</h1>
+    <p>Rate a few movies you know, and get personalized recommendations — powered by SVD collaborative filtering.</p>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>1. Search &amp; rate a few movies</h2>
+      <input type="text" id="searchBox" placeholder="Search movies by title or genre..." />
+      <div id="movieList" class="movie-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>2. Your ratings</h2>
+        <span id="ratingCount" class="badge">0 rated</span>
+      </div>
+      <div id="ratedList" class="rated-list">
+        <p class="empty-hint">No movies rated yet — rate at least one to get personalized picks.</p>
+      </div>
+      <button id="recommendBtn" class="primary-btn">Get Recommendations</button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>3. Recommended for you</h2>
+        <span id="strategyBadge" class="badge muted"></span>
+      </div>
+      <div id="recommendations" class="rec-grid">
+        <p class="empty-hint">Your recommendations will appear here.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Backend: Flask + SVD (scikit-learn) &nbsp;•&nbsp; Frontend: HTML/CSS/JS &nbsp;•&nbsp; Mini Project — AIML</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html> -->
+
+<!-- another code -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="Cinevo — an AI-powered movie recommendation experience."
+  />
+
+  <title>Cinevo — Discover Your Next Favorite</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- Background ambient effects -->
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+
+  <!-- =========================
+       NAVIGATION
+  ========================== -->
+  <header class="navbar" id="navbar">
+
+    <a class="brand" href="#" aria-label="Cinevo home">
+      <span class="brand-mark">C</span>
+      <span>CINEVO</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="#discover">Discover</a>
+      <a href="#rate">Rate Movies</a>
+      <a href="#recommendations">For You</a>
+    </nav>
+
+    <div class="nav-actions">
+
+      <button
+        class="icon-btn"
+        id="navSearchBtn"
+        aria-label="Focus movie search"
+      >
+        ⌕
+      </button>
+
+      <span class="nav-status">
+        <span class="status-dot"></span>
+        AI Online
+      </span>
+
+    </div>
+
+  </header>
+
+
+
+  <!-- =========================
+       MAIN CONTENT
+  ========================== -->
+  <main>
+
+
+    <!-- =========================
+         HERO
+    ========================== -->
+    <section class="hero" id="discover">
+
+      <div class="hero-content">
+
+        <div class="eyebrow">
+          <span></span>
+          PERSONALIZED MOVIE DISCOVERY
+        </div>
+
+        <h1>
+          Find a movie<br />
+          <em>worth your time.</em>
+        </h1>
+
+        <p>
+          Rate a few movies you know. Cinevo learns your taste and builds
+          a personalized list using collaborative filtering.
+        </p>
+
+        <div class="hero-actions">
+
+          <a class="btn btn-primary" href="#rate">
+            <span>★</span>
+            Start Rating
+          </a>
+
+          <a class="btn btn-ghost" href="#recommendations">
+            Explore Recommendations
+            <span>↓</span>
+          </a>
+
+        </div>
+
+
+        <div class="hero-stats">
+
+          <div>
+            <strong>01</strong>
+            <span>Rate movies</span>
+          </div>
+
+          <div>
+            <strong>02</strong>
+            <span>Build your taste</span>
+          </div>
+
+          <div>
+            <strong>03</strong>
+            <span>Get AI picks</span>
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- Decorative movie posters -->
+      <div class="hero-art" aria-hidden="true">
+
+        <div class="poster-stack">
+
+          <div class="hero-poster poster-back poster-a">
+            <span>SCI-FI</span>
+            <strong>
+              BEYOND<br />
+              THE STARS
+            </strong>
+            <small>∞</small>
+          </div>
+
+
+          <div class="hero-poster poster-back poster-b">
+            <span>THRILLER</span>
+            <strong>
+              THE<br />
+              UNKNOWN
+            </strong>
+            <small>07</small>
+          </div>
+
+
+          <div class="hero-poster poster-main">
+
+            <div class="poster-noise"></div>
+
+            <span class="poster-kicker">
+              CINEVO ORIGINAL
+            </span>
+
+            <strong>
+              FIND<br />
+              <i>YOUR</i><br />
+              NEXT
+            </strong>
+
+            <div class="poster-bottom">
+              A JOURNEY THROUGH STORIES
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="floating-score">
+
+          <span>✦</span>
+
+          <strong>AI</strong>
+
+          <small>powered</small>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         RATE MOVIES
+    ========================== -->
+    <section class="section" id="rate">
+
+      <div class="section-heading">
+
+        <div>
+
+          <span class="section-kicker">
+            BUILD YOUR TASTE PROFILE
+          </span>
+
+          <h2>
+            What do you <em>love?</em>
+          </h2>
+
+        </div>
+
+        <span class="count-badge" id="ratingCount">
+          0 rated
+        </span>
+
+      </div>
+
+
+
+      <div class="rating-workspace">
+
+
+        <!-- Movie search -->
+        <div class="search-panel">
+
+          <div class="search-wrap">
+
+            <span class="search-icon">
+              ⌕
+            </span>
+
+            <input
+              type="text"
+              id="searchBox"
+              autocomplete="off"
+              placeholder="Search by title or genre..."
+              aria-label="Search movies"
+            />
+
+            <kbd>⌘ K</kbd>
+
+          </div>
+
+
+          <div class="filter-line">
+
+            <span id="movieResultLabel">
+              Browse all movies
+            </span>
+
+            <span class="scroll-hint">
+              Scroll to explore ↓
+            </span>
+
+          </div>
+
+
+          <div id="movieList" class="movie-list"></div>
+
+        </div>
+
+
+
+        <!-- User taste profile -->
+        <aside class="taste-panel">
+
+          <div class="taste-top">
+
+            <span class="mini-label">
+              YOUR TASTE
+            </span>
+
+            <span class="taste-icon">
+              ✦
+            </span>
+
+          </div>
+
+
+          <div id="ratedList" class="rated-list">
+
+            <div class="empty-state compact">
+
+              <div class="empty-icon">
+                ＋
+              </div>
+
+              <strong>
+                Your taste profile is empty
+              </strong>
+
+              <p>
+                Rate 3–4 movies to give Cinevo a strong signal.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- Profile strength -->
+          <div class="taste-meter">
+
+            <div class="meter-label">
+
+              <span>
+                Profile strength
+              </span>
+
+              <strong id="profileStrength">
+                0%
+              </strong>
+
+            </div>
+
+            <div class="meter">
+              <span id="profileMeter"></span>
+            </div>
+
+          </div>
+
+
+          <button
+            id="recommendBtn"
+            class="btn btn-primary full-btn"
+          >
+            <span>✦</span>
+            Build My Recommendations
+          </button>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         RECOMMENDATIONS
+    ========================== -->
+    <section class="section recommendations-section" id="recommendations">
+
+      <div class="section-heading">
+
+        <div>
+
+          <span class="section-kicker">
+            CINEVO AI
+          </span>
+
+          <h2>
+            Picked <em>for you.</em>
+          </h2>
+
+        </div>
+
+        <span
+          id="strategyBadge"
+          class="strategy-badge"
+        >
+          Waiting for your taste
+        </span>
+
+      </div>
+
+
+
+      <div class="recommendation-intro">
+
+        <div>
+
+          <span class="ai-orb">
+            ✦
+          </span>
+
+          <div>
+
+            <strong id="recommendationHeadline">
+              Your personalized shelf is waiting.
+            </strong>
+
+            <p id="recommendationSubtext">
+              Rate a few movies above and let the model find patterns
+              in your taste.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <span class="model-label">
+          SVD · COLLABORATIVE FILTERING
+        </span>
+
+      </div>
+
+
+
+      <!-- IMPORTANT:
+           This ID is different from the section ID -->
+      <div id="recommendationGrid" class="rec-grid">
+
+        <div class="empty-state recommendation-empty">
+
+          <div class="empty-icon large">
+            ✦
+          </div>
+
+          <strong>
+            Nothing here yet.
+          </strong>
+
+          <p>
+            Your recommendations will appear here after you rate
+            some movies.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         HOW IT WORKS
+    ========================== -->
+    <section class="how-section">
+
+      <div class="section-heading centered">
+
+        <div>
+
+          <span class="section-kicker">
+            HOW IT WORKS
+          </span>
+
+          <h2>
+            Simple input.
+            <em>Smarter picks.</em>
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="process-grid">
+
+
+        <article>
+
+          <span class="process-number">
+            01
+          </span>
+
+          <span class="process-icon">
+            ★
+          </span>
+
+          <h3>
+            Rate
+          </h3>
+
+          <p>
+            Tell Cinevo what you already enjoy by rating a handful
+            of movies.
+          </p>
+
+        </article>
+
+
+
+        <article>
+
+          <span class="process-number">
+            02
+          </span>
+
+          <span class="process-icon">
+            ◈
+          </span>
+
+          <h3>
+            Learn
+          </h3>
+
+          <p>
+            Your ratings are projected into latent taste dimensions
+            by SVD.
+          </p>
+
+        </article>
+
+
+
+        <article>
+
+          <span class="process-number">
+            03
+          </span>
+
+          <span class="process-icon">
+            ✦
+          </span>
+
+          <h3>
+            Discover
+          </h3>
+
+          <p>
+            The highest-scoring unrated movies become your
+            personalized picks.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+  <footer>
+
+    <div class="footer-brand">
+
+      <span class="brand-mark">
+        C
+      </span>
+
+      CINEVO
+
+    </div>
+
+    <p>
+      Flask + SVD · scikit-learn · HTML / CSS / JavaScript · AIML Mini Project
+    </p>
+
+    <span>
+      Built to discover.
+    </span>
+
+  </footer>
+
+
+
+  <!-- Toast notification -->
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+
+
+  <script src="script.js"></script>
+
+</body>
+</html>
