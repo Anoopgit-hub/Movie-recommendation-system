@@ -1,13 +1,7 @@
-# Python virtual environment
-backend/venv/
-
-# Python cache files
+venv/
 __pycache__/
 *.pyc
-*.pyo
-
-# Environment variables / secrets
-.env
-
-# VS Code settings
+backend/posters_cache.json
+backend/model/recommender.pkl
+backend/data/*.csv
 .vscode/

@@ -1,177 +1,3 @@
-/* const API_BASE = "http://127.0.0.1:5000/api";
-
-let allMovies = [];
-const userRatings = new Map(); // movieId -> rating
-
-const movieListEl = document.getElementById("movieList");
-const ratedListEl = document.getElementById("ratedList");
-const ratingCountEl = document.getElementById("ratingCount");
-const recommendationsEl = document.getElementById("recommendations");
-const strategyBadgeEl = document.getElementById("strategyBadge");
-const searchBoxEl = document.getElementById("searchBox");
-const recommendBtn = document.getElementById("recommendBtn");
-
-async function loadMovies() {
-  try {
-    const res = await fetch(`${API_BASE}/movies`);
-    allMovies = await res.json();
-    renderMovieList(allMovies);
-  } catch (err) {
-    movieListEl.innerHTML = `<p class="empty-hint">Could not reach the backend. Is app.py running on port 5000?</p>`;
-  }
-}
-
-function renderMovieList(movies) {
-  if (movies.length === 0) {
-    movieListEl.innerHTML = `<p class="empty-hint">No movies match your search.</p>`;
-    return;
-  }
-  movieListEl.innerHTML = movies
-    .map((m) => {
-      const current = userRatings.get(m.movieId) || "";
-      return `
-        <div class="movie-row">
-          <div class="info">
-            <span class="title">${escapeHtml(m.title)}</span>
-            <span class="genres">${escapeHtml(m.genres)}</span>
-          </div>
-          <select data-movie-id="${m.movieId}" class="rate-select">
-            <option value="">Rate...</option>
-            ${[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-              .map(
-                (v) =>
-                  `<option value="${v}" ${String(v) === String(current) ? "selected" : ""}>${v} ★</option>`
-              )
-              .join("")}
-          </select>
-        </div>
-      `;
-    })
-    .join("");
-
-  document.querySelectorAll(".rate-select").forEach((select) => {
-    select.addEventListener("change", (e) => {
-      const movieId = parseInt(e.target.dataset.movieId, 10);
-      const value = e.target.value;
-      if (value === "") {
-        userRatings.delete(movieId);
-      } else {
-        userRatings.set(movieId, parseFloat(value));
-      }
-      renderRatedList();
-    });
-  });
-}
-
-function renderRatedList() {
-  ratingCountEl.textContent = `${userRatings.size} rated`;
-
-  if (userRatings.size === 0) {
-    ratedListEl.innerHTML = `<p class="empty-hint">No movies rated yet — rate at least one to get personalized picks.</p>`;
-    return;
-  }
-
-  ratedListEl.innerHTML = Array.from(userRatings.entries())
-    .map(([movieId, rating]) => {
-      const movie = allMovies.find((m) => m.movieId === movieId);
-      if (!movie) return "";
-      return `
-        <span class="rated-chip">
-          ${escapeHtml(movie.title)} <span class="stars">${rating}★</span>
-          <button data-movie-id="${movieId}" title="Remove rating">✕</button>
-        </span>
-      `;
-    })
-    .join("");
-
-  document.querySelectorAll(".rated-chip button").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const movieId = parseInt(e.target.dataset.movieId, 10);
-      userRatings.delete(movieId);
-      renderRatedList();
-      renderMovieList(filterMovies(searchBoxEl.value));
-    });
-  });
-}
-
-function filterMovies(query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return allMovies;
-  return allMovies.filter(
-    (m) => m.title.toLowerCase().includes(q) || m.genres.toLowerCase().includes(q)
-  );
-}
-
-async function getRecommendations() {
-  recommendBtn.disabled = true;
-  recommendBtn.textContent = "Thinking...";
-
-  const ratings = Array.from(userRatings.entries()).map(([movieId, rating]) => ({
-    movieId,
-    rating,
-  }));
-
-  try {
-    const res = await fetch(`${API_BASE}/recommend`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ratings, topN: 10 }),
-    });
-    const data = await res.json();
-    renderRecommendations(data);
-  } catch (err) {
-    recommendationsEl.innerHTML = `<p class="empty-hint">Could not reach the backend. Is app.py running on port 5000?</p>`;
-  } finally {
-    recommendBtn.disabled = false;
-    recommendBtn.textContent = "Get Recommendations";
-  }
-}
-
-function renderRecommendations(data) {
-  const { strategy, recommendations } = data;
-
-  strategyBadgeEl.textContent =
-    strategy === "popularity" ? "Cold start: showing popular picks" : "Personalized (SVD)";
-
-  if (!recommendations || recommendations.length === 0) {
-    recommendationsEl.innerHTML = `<p class="empty-hint">No recommendations found.</p>`;
-    return;
-  }
-
-  recommendationsEl.innerHTML = recommendations
-    .map(
-      (m) => `
-        <div class="rec-card">
-          <div class="rec-title">${escapeHtml(m.title)}</div>
-          <div class="rec-genres">${escapeHtml(m.genres)}</div>
-          ${
-            m.predictedRating !== undefined
-              ? `<div class="rec-score">Predicted fit: ${m.predictedRating}</div>`
-              : ""
-          }
-        </div>
-      `
-    )
-    .join("");
-}
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-searchBoxEl.addEventListener("input", (e) => {
-  renderMovieList(filterMovies(e.target.value));
-});
-
-recommendBtn.addEventListener("click", getRecommendations);
-
-loadMovies();
- */
-
-/* another code */
-
 /* =========================================================
    CINEVO FRONTEND
    Flask API + SVD Recommendation System
@@ -517,7 +343,7 @@ function renderMovieList(movies) {
 
   movieListEl.innerHTML =
 
-    movies.map((movie) => {
+    movies.slice(0, 100).map((movie) => {
 
       const currentRating =
         userRatings.get(
@@ -538,6 +364,7 @@ function renderMovieList(movies) {
 
           <div
             class="mini-poster"
+            data-movie-id="${movie.movieId}"
             style="background:${posterStyle(index)}"
           >
 
@@ -651,6 +478,64 @@ function renderMovieList(movies) {
       );
 
     });
+
+  loadMiniPosters(movies);
+
+}
+
+
+
+/* =========================================================
+   LOAD REAL POSTERS (TMDB, via the Flask backend)
+========================================================= */
+
+let posterTimer = null;
+
+function loadMiniPosters(movies) {
+
+  clearTimeout(posterTimer);
+
+  /* wait 300ms so we don't fire on every keystroke while typing */
+  posterTimer = setTimeout(async () => {
+
+    const ids = movies.slice(0, 100).map(movie => movie.movieId);
+
+    if (!ids.length) return;
+
+    try {
+
+      const response = await fetch(`${API_BASE}/posters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids })
+      });
+
+      if (!response.ok) return;
+
+      const posterMap = await response.json();
+
+      document.querySelectorAll(".mini-poster").forEach(el => {
+
+        const url = posterMap[el.dataset.movieId];
+
+        if (!url) return;
+
+        el.style.backgroundImage = `url('${url}')`;
+        el.style.backgroundSize = "cover";
+        el.style.backgroundPosition = "center";
+
+        const initials = el.querySelector("span");
+        if (initials) initials.style.display = "none";
+
+      });
+
+    } catch (error) {
+
+      console.warn("Poster loading skipped:", error);
+
+    }
+
+  }, 300);
 
 }
 
@@ -1367,6 +1252,17 @@ function renderRecommendations(data) {
               : title;
 
 
+          /*
+            Use the real TMDB poster when the backend found one,
+            otherwise keep the decorative gradient.
+          */
+
+          const posterBackground =
+            movie.posterUrl
+              ? `linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.05) 55%, rgba(0,0,0,0.35)), url('${movie.posterUrl}') center/cover no-repeat`
+              : posterStyle(index + movieIndex(movie));
+
+
 
           return `
 
@@ -1377,9 +1273,7 @@ function renderRecommendations(data) {
 
               <div
                 class="rec-poster"
-                style="background:${posterStyle(
-                  index + movieIndex(movie)
-                )}"
+                style="background:${posterBackground}"
               >
 
 
@@ -1410,14 +1304,14 @@ function renderRecommendations(data) {
                 </span>
 
 
-                <strong class="poster-title">
+                <strong class="poster-title" style="${movie.posterUrl ? 'display:none' : ''}">
 
                   ${posterTitle}
 
                 </strong>
 
 
-                <span class="poster-meta">
+                <span class="poster-meta" style="${movie.posterUrl ? 'display:none' : ''}">
 
                   ${genres}
 

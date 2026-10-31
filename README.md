@@ -1,107 +1,113 @@
-# Cinevo — Movie Recommendation System
+# Cinevo: Movie Recommendation System
 
-A full-stack movie recommender built for an AIML mini-project.
+Cinevo is a full-stack movie recommender built as an AIML mini project. You rate a few movies you know, and it suggests movies you are likely to enjoy, using collaborative filtering with SVD (matrix factorization) trained on the real MovieLens dataset.
 
-- **ML core**: Collaborative filtering via SVD (matrix factorization) — `scikit-learn`'s `TruncatedSVD`
-- **Backend**: Flask REST API
-- **Frontend**: Plain HTML/CSS/JS
-- **Dataset**: A small synthetic MovieLens-style dataset is generated automatically so the
-  project runs immediately with no downloads. Swap in the real MovieLens dataset any time
-  (instructions below) with zero code changes.
+## Features
 
-## How it works (for your report / viva)
+- Search movies by title or genre and rate them
+- Personalized top picks with a predicted rating
+- Popular movies for new users who have not rated anything (cold start)
+- Movie posters from the TMDB API (optional)
 
-1. Ratings are arranged into a **user × movie matrix** (rows = users, columns = movies, cells = ratings).
-2. `TruncatedSVD` factorizes this matrix into **latent factors** — hidden "taste dimensions"
-   that explain rating patterns (this is the same matrix decomposition idea from your linear
-   algebra coursework, applied to a sparse, real-world matrix).
-3. To recommend for a user, their ratings are projected into that latent space, then
-   reconstructed to predict scores for every movie they haven't rated. The highest-scoring
-   unrated movies become the recommendations.
-4. **Cold-start handling**: a brand-new user with zero ratings has no latent vector, so the API
-   falls back to a popularity ranking (average rating, with a minimum vote count so obscure
-   movies don't game the ranking).
+## Tech stack
+
+- **Machine learning:** Python, Pandas, NumPy, scikit-learn (`TruncatedSVD`)
+- **Backend:** Flask, Flask-CORS
+- **Frontend:** HTML, CSS, JavaScript
+- **Data:** MovieLens "small" dataset (about 100,000 ratings from 671 users)
+- **Posters:** TMDB API
+
+## How it works
+
+1. Ratings are arranged in a user x movie matrix.
+2. The matrix is mean-centered, so unrated movies are treated as average and not as zero. This matters a lot because real rating data is mostly empty. Without it, the error was about 3.0 RMSE.
+3. `TruncatedSVD` (40 latent factors) learns hidden taste patterns from the matrix.
+4. For a user, the ratings are projected into the model, ratings are predicted for all unrated movies, and the highest ones are returned.
+5. A new user with no ratings gets popular movies instead.
+
+The model reaches an RMSE of about 1.0 on held-out ratings (scale 0.5 to 5).
 
 ## Project structure
 
 ```
-movie-recommender/
-├── backend/
-│   ├── app.py                  # Flask API
-│   ├── requirements.txt
-│   ├── model/
-│   │   ├── train_model.py      # trains & saves the SVD model
-│   │   └── recommender.pkl     # generated after training
-│   └── data/
-│       ├── generate_data.py    # creates the sample dataset
-│       ├── movies.csv          # generated
-│       └── ratings.csv         # generated
-└── frontend/
-    ├── index.html
-    ├── style.css
-    └── script.js
+backend/
+  app.py              Flask API
+  posters.py          TMDB poster lookup with caching
+  requirements.txt
+  data/               put movies.csv, ratings.csv, links.csv here
+  model/
+    train_model.py    trains and saves the model
+frontend/
+  index.html
+  style.css
+  script.js
 ```
 
-## Setup & run
+The data files and the trained model (`recommender.pkl`) are not stored in this repository. You create them in the steps below.
 
-### 1. Install dependencies
-```bash
-cd movie-recommender/backend
+## Setup and run
+
+**1. Get the data.** Download `movies.csv`, `ratings.csv` and `links.csv` from the MovieLens small dataset and put all three in `backend/data/`.
+Dataset copy: https://github.com/srviest/movie-recommender/tree/master/dataset/movielens/small
+Original source: https://grouplens.org/datasets/movielens/
+
+**2. Install the libraries** (Windows commands shown):
+
+```
+cd backend
+python -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Generate the dataset
-```bash
-cd data
-python generate_data.py
-cd ..
-```
-This creates `movies.csv` and `ratings.csv` (50 movies, ~120 synthetic users).
+**3. Train the model:**
 
-### 3. Train the model
-```bash
+```
 cd model
 python train_model.py
 cd ..
 ```
-This prints a validation RMSE and saves `recommender.pkl`.
 
-### 4. Start the API
-```bash
+This prints the validation RMSE and saves `recommender.pkl`.
+
+**4. Start the API:**
+
+```
 python app.py
 ```
-Runs on `http://127.0.0.1:5000`. Keep this terminal open.
 
-### 5. Open the frontend
-Just open `frontend/index.html` directly in your browser (double-click it, or
-right-click → Open With → your browser). It talks to the API at `127.0.0.1:5000`.
+It runs at http://127.0.0.1:5000. Keep this terminal open.
 
-If your browser blocks local file requests, serve it instead:
-```bash
-cd frontend
-python -m http.server 8000
-```
-then visit `http://127.0.0.1:8000`.
+**5. Open the app.** Open `frontend/index.html` in your browser. If your browser blocks it, run `python -m http.server 8000` inside the `frontend` folder and visit http://127.0.0.1:8000.
+
+## Posters (optional)
+
+Posters need a free TMDB API key. Without a key, the project still works and shows gradient placeholders.
+
+1. Create a free account at https://www.themoviedb.org and request an API key in Settings, API.
+2. Before starting the server, set the key in the same terminal:
+   `set TMDB_API_KEY=your_key_here`
+3. Run `python app.py`.
+
+Never commit your real key to GitHub.
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 ## Using it
 
-1. Search and rate a handful of movies (try to rate at least 3–4 for better results).
-2. Click **Get Recommendations**.
-3. The app calls the SVD model and shows your top picks, with a predicted-fit score.
-4. Remove all ratings and click the button again to see the cold-start (popularity) fallback.
+1. Search for movies you know and rate at least 3 or 4 of them.
+2. Click Get Recommendations.
+3. Remove all ratings and click again to see the new-user (popular movies) result.
 
-## Using the real MovieLens dataset instead
+## Future scope
 
-1. Download "ml-latest-small" from https://grouplens.org/datasets/movielens/
-2. Copy its `movies.csv` and `ratings.csv` into `backend/data/`, overwriting the generated ones
-3. Re-run `python train_model.py`
+- User accounts to save ratings
+- Short reasons for each recommendation
+- Hybrid filtering that also uses genres
+- Larger datasets and comparison with other algorithms
+- Online deployment
 
-No other code changes are needed — column names already match.
+## Credits
 
-## Ideas for extending it (good talking points in your viva)
-
-- Add a content-based fallback using genres (TF-IDF over genre tags) blended with SVD
-- Show "why recommended" by highlighting shared genres with the user's top-rated movies
-- Persist ratings per session/user instead of resetting on page reload
-- Swap `TruncatedSVD` for the `surprise` library's `SVD` (adds bias terms, often better RMSE)
-- Add posters via the free TMDB API by matching movie titles
+- Ratings data: MovieLens, GroupLens Research, University of Minnesota
+- Posters: TMDB

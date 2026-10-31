@@ -16,6 +16,7 @@ import os
 import numpy as np
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from posters import get_posters
 
 app = Flask(__name__)
 CORS(app)  # allows the frontend (opened as a local file / different port) to call this API
@@ -29,6 +30,7 @@ SVD = ARTIFACT["svd"]
 MATRIX_COLUMNS = ARTIFACT["matrix_columns"]  # movieId order
 MOVIES = ARTIFACT["movies"]
 POPULAR_MOVIE_IDS = ARTIFACT["popular_movie_ids"]
+GLOBAL_MEAN = ARTIFACT["global_mean"]
 
 MOVIE_LOOKUP = MOVIES.set_index("movieId").to_dict(orient="index")
 COL_INDEX = {movie_id: idx for idx, movie_id in enumerate(MATRIX_COLUMNS)}
@@ -60,26 +62,31 @@ def recommend():
     user_ratings = body.get("ratings", [])
     top_n = int(body.get("topN", 10))
 
-    # Build a rating vector for this (possibly brand-new) user, aligned to
-    # the same movie columns the model was trained on.
+    # Build a mean-centered rating vector for this (possibly brand-new) user,
+    # aligned to the same movie columns the model was trained on. Unrated
+    # movies stay at 0, which represents "average" (global mean) after
+    # centering — matching how the model was trained, so an unrated movie
+    # isn't mistaken for one the user hated.
     user_vector = np.zeros(len(MATRIX_COLUMNS))
     rated_ids = set()
     for entry in user_ratings:
         movie_id = entry.get("movieId")
         rating = entry.get("rating")
         if movie_id in COL_INDEX and rating is not None:
-            user_vector[COL_INDEX[movie_id]] = float(rating)
+            user_vector[COL_INDEX[movie_id]] = float(rating) - GLOBAL_MEAN
             rated_ids.add(movie_id)
 
     if not rated_ids:
         # Cold-start: no ratings given yet, fall back to popularity
-        recs = [movie_payload(mid) for mid in POPULAR_MOVIE_IDS[:top_n]]
+        recs = attach_posters([movie_payload(mid) for mid in POPULAR_MOVIE_IDS[:top_n]])
         return jsonify({"strategy": "popularity", "recommendations": recs})
 
     # Project this user's ratings into the SVD latent space, then
-    # reconstruct their predicted ratings across ALL movies.
+    # reconstruct their predicted ratings across ALL movies (adding the
+    # global mean back to return real 0.5-5 style rating predictions).
     user_factors = SVD.transform(user_vector.reshape(1, -1))
-    predicted = np.dot(user_factors, SVD.components_).flatten()
+    predicted = np.dot(user_factors, SVD.components_).flatten() + GLOBAL_MEAN
+    predicted = np.clip(predicted, 0.5, 5.0)
 
     scored = [
         (MATRIX_COLUMNS[idx], predicted[idx])
@@ -88,8 +95,26 @@ def recommend():
     ]
     scored.sort(key=lambda pair: pair[1], reverse=True)
 
-    recs = [movie_payload(mid, score) for mid, score in scored[:top_n]]
+    recs = attach_posters([movie_payload(mid, score) for mid, score in scored[:top_n]])
     return jsonify({"strategy": "svd", "recommendations": recs})
+
+
+
+def attach_posters(recs):
+    """Adds a posterUrl to each recommended movie when TMDB has one."""
+    ids = [r["movieId"] for r in recs if r]
+    urls = get_posters(ids, MOVIE_LOOKUP)
+    for r in recs:
+        if r and urls.get(r["movieId"]):
+            r["posterUrl"] = urls[r["movieId"]]
+    return recs
+
+
+@app.route("/api/posters", methods=["POST"])
+def posters():
+    body = request.get_json(force=True) or {}
+    ids = [int(i) for i in body.get("ids", [])][:150]
+    return jsonify(get_posters(ids, MOVIE_LOOKUP))
 
 
 @app.route("/api/health", methods=["GET"])
